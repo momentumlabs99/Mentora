@@ -1,4 +1,5 @@
 require("dotenv").config();
+const { Certificate } = require("crypto");
 const path = require("path");
 
 module.exports = {
@@ -9,9 +10,10 @@ module.exports = {
     // Secondary CouchDB URL (for the other organization to ensure data replication)
     url2: process.env.COUCHDB_URL2 || "http://admin:adminpw@localhost:6984",
     databases: {
-      accounts: "accounts",
-      cards: "cards",
-      customers: "customers",
+      course: "course",
+      student: "student",
+      scholarship: "scholarship",
+      Certificate: "certificates",
     },
   },
 
@@ -21,7 +23,7 @@ module.exports = {
   // - Chaincode: branchchain (custom banking chaincode) or basic (asset transfer)
   // - Package ID: branchchain_1.0:ddc67f950a3353364d596b5bbd42700251001306a7bed343806e8be7d1c1ea94
   channelName: process.env.CHANNEL_NAME || "test4",
-  chaincodeName: process.env.CHAINCODE_NAME || "branchchain",
+  chaincodeName: process.env.CHAINCODE_NAME || "mentora",
 
   // Organization identity
   mspId: process.env.MSP_ID || "Org1MSP",
