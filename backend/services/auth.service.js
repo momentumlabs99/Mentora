@@ -180,19 +180,50 @@ async function getNGOById(ngoId) {
 }
 
 /**
- * Create user (for future implementation)
+ * Create user (simple in-memory implementation)
  * @param {object} userData - User data
- * @returns {Promise<object>} Created user
+ * @returns {Promise<object>} Created user (without password)
  */
 async function createUser(userData) {
-  const user = User.fromObject(userData);
+  const base = {
+    role: 'STUDENT',
+    organization: '',
+    studentId: '',
+    branchId: '',
+    ...userData,
+  };
+
+  // Prevent duplicate emails
+  const existing = usersDatabase.find((u) => u.email === base.email);
+  if (existing) {
+    throw new Error('An account with this email already exists');
+  }
+
+  // Generate an ID if missing
+  if (!base.userId) {
+    base.userId = User.generateId(base.role);
+  }
+
+  // Build full user including password for storage
+  const user = User.fromObject(base, true);
   const validation = user.validate();
-  
+
   if (!validation.valid) {
     throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
   }
 
-  // In production, this would save to database
+  // In this demo, push into the in-memory database.
+  usersDatabase.push({
+    userId: user.userId,
+    email: user.email,
+    password: user.password,
+    name: user.name,
+    role: user.role,
+    organization: user.organization,
+    studentId: user.studentId,
+    branchId: user.branchId,
+  });
+
   const { password: _, ...userWithoutPassword } = user;
   return userWithoutPassword;
 }
