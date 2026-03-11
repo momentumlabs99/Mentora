@@ -4,34 +4,44 @@ const { success, error } = require('../utils/response.util');
 
 /**
  * Login controller
- * Authenticates a user and returns a JWT token
+ * Authenticates a user (NGO, Student, or Admin) and returns a JWT token
  */
 async function login(req, res) {
   try {
-    const { staffId, password } = req.body;
+    const { email, password } = req.body;
 
     // Validate input
-    if (!staffId || !password) {
-      return error(res, 'Staff ID and password are required', 400);
+    if (!email || !password) {
+      return error(res, 'Email and password are required', 400);
     }
 
-    // Authenticate user
-    const user = await authService.authenticateStaff(staffId, password);
+    // Authenticate user using email
+    const user = await authService.authenticateUser(email, password);
 
     if (!user) {
       return error(res, 'Invalid credentials', 401);
     }
 
-    // Generate JWT token
+    // Generate JWT token with full user information
     const token = jwtService.generateToken({
-      id: user.id,
+      id: user.userId,
+      email: user.email,
       name: user.name,
       role: user.role,
+      organization: user.organization,
+      studentId: user.studentId,
       branchId: user.branchId
     });
 
+    // If user is an NGO, also fetch NGO details
+    let ngoDetails = null;
+    if (user.role === 'NGO') {
+      ngoDetails = await authService.getNGOByUserId(user.userId);
+    }
+
     return success(res, {
       user,
+      ngo: ngoDetails,
       token
     });
   } catch (err) {
@@ -41,7 +51,7 @@ async function login(req, res) {
 }
 
 /**
- * Verify token controller (simulated endpoint)
+ * Verify token controller
  * Validates if a token is still valid
  */
 async function verifyToken(req, res) {
@@ -58,9 +68,16 @@ async function verifyToken(req, res) {
       return error(res, 'Invalid or expired token', 401);
     }
 
+    // Fetch fresh user data
+    const user = await authService.getUserById(decoded.id);
+
+    if (!user) {
+      return error(res, 'User not found', 404);
+    }
+
     return success(res, {
       valid: true,
-      user: decoded
+      user: { ...decoded, ...user }
     });
   } catch (err) {
     console.error('Token verification error:', err);
@@ -69,7 +86,7 @@ async function verifyToken(req, res) {
 }
 
 /**
- * Logout controller (simulated endpoint)
+ * Logout controller
  * In a real app, this would invalidate the token on the server
  */
 async function logout(req, res) {
@@ -85,8 +102,38 @@ async function logout(req, res) {
   }
 }
 
+/**
+ * Get current user profile
+ * Requires authentication
+ */
+async function getProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await authService.getUserById(userId);
+
+    if (!user) {
+      return error(res, 'User not found', 404);
+    }
+
+    // If user is an NGO, also fetch NGO details
+    let ngoDetails = null;
+    if (user.role === 'NGO') {
+      ngoDetails = await authService.getNGOByUserId(userId);
+    }
+
+    return success(res, {
+      user,
+      ngo: ngoDetails
+    });
+  } catch (err) {
+    console.error('Get profile error:', err);
+    return error(res, 'Internal server error', 500);
+  }
+}
+
 module.exports = {
   login,
   verifyToken,
-  logout
+  logout,
+  getProfile
 };
