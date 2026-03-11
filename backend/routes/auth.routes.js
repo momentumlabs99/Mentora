@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
+const { authenticate } = require('../middleware/authMiddleware');
 
 /**
  * @route   POST /api/auth/login
- * @desc    Authenticate user and return token
+ * @desc    Authenticate user (NGO, Student, or Admin) and return token
  * @access  Public
  */
 router.post('/login', authController.login);
@@ -14,7 +15,7 @@ router.post('/login', authController.login);
  * @desc    Logout user (client-side token removal)
  * @access  Private
  */
-router.post('/logout', authController.logout);
+router.post('/logout', authenticate, authController.logout);
 
 /**
  * @route   POST /api/auth/verify
@@ -22,5 +23,12 @@ router.post('/logout', authController.logout);
  * @access  Public
  */
 router.post('/verify', authController.verifyToken);
+
+/**
+ * @route   GET /api/auth/profile
+ * @desc    Get current user profile
+ * @access  Private
+ */
+router.get('/profile', authenticate, authController.getProfile);
 
 module.exports = router;

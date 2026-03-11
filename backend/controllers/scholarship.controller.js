@@ -7,6 +7,17 @@ const { success, error } = require('../utils/response.util');
 async function createScholarshipFund(req, res) {
   try {
     const fundData = req.body;
+    
+    // Add owner_id from authenticated user (for NGO users)
+    if (req.user && (req.user.role === 'NGO' || req.user.role === 'ADMIN')) {
+      fundData.ownerId = req.user.id;
+      fundData.ownerName = req.user.name;
+      fundData.ownerEmail = req.user.email;
+      fundData.ownerRole = req.user.role;
+      if (req.user.role === 'NGO') {
+        fundData.ownerOrganization = req.user.organization;
+      }
+    }
 
     // Validate required fields
     const requiredFields = [
