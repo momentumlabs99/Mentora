@@ -1,5 +1,5 @@
-const ledgerService = require('../services/ledger-gateway.service');
-const { success, error } = require('../utils/response.util');
+const ledgerService = require("../services/ledger-gateway.service");
+const { success, error } = require("../utils/response.util");
 
 /**
  * Get all certificates for a student
@@ -9,14 +9,15 @@ async function getStudentCertificates(req, res) {
     const { studentId } = req.params;
 
     if (!studentId) {
-      return error(res, 'Student ID is required', 400);
+      return error(res, "Student ID is required", 400);
     }
 
-    const certificates = await ledgerService.queryCertificatesByStudent(studentId);
+    const certificates =
+      await ledgerService.queryCertificatesByStudent(studentId);
     return success(res, certificates);
   } catch (err) {
-    console.error('Get student certificates error:', err);
-    return error(res, 'Failed to retrieve certificates', 500);
+    console.error("Get student certificates error:", err);
+    return error(res, "Failed to retrieve certificates", 500);
   }
 }
 
@@ -28,14 +29,14 @@ async function getStudentEnrollments(req, res) {
     const { studentId } = req.params;
 
     if (!studentId) {
-      return error(res, 'Student ID is required', 400);
+      return error(res, "Student ID is required", 400);
     }
 
     const enrollments = await ledgerService.queryStudentEnrollments(studentId);
     return success(res, enrollments);
   } catch (err) {
-    console.error('Get student enrollments error:', err);
-    return error(res, 'Failed to retrieve enrollments', 500);
+    console.error("Get student enrollments error:", err);
+    return error(res, "Failed to retrieve enrollments", 500);
   }
 }
 
@@ -47,14 +48,15 @@ async function getStudentScholarships(req, res) {
     const { studentId } = req.params;
 
     if (!studentId) {
-      return error(res, 'Student ID is required', 400);
+      return error(res, "Student ID is required", 400);
     }
 
-    const scholarships = await ledgerService.queryStudentScholarships(studentId);
+    const scholarships =
+      await ledgerService.queryStudentScholarships(studentId);
     return success(res, scholarships);
   } catch (err) {
-    console.error('Get student scholarships error:', err);
-    return error(res, 'Failed to retrieve scholarships', 500);
+    console.error("Get student scholarships error:", err);
+    return error(res, "Failed to retrieve scholarships", 500);
   }
 }
 
@@ -66,14 +68,14 @@ async function verifyStudentCertificate(req, res) {
     const { certificateId } = req.params;
 
     if (!certificateId) {
-      return error(res, 'Certificate ID is required', 400);
+      return error(res, "Certificate ID is required", 400);
     }
 
     const verification = await ledgerService.verifyCertificate(certificateId);
     return success(res, verification);
   } catch (err) {
-    console.error('Verify certificate error:', err);
-    return error(res, 'Failed to verify certificate', 500);
+    console.error("Verify certificate error:", err);
+    return error(res, "Failed to verify certificate", 500);
   }
 }
 
@@ -85,14 +87,14 @@ async function getStudentProfile(req, res) {
     const { studentId } = req.params;
 
     if (!studentId) {
-      return error(res, 'Student ID is required', 400);
+      return error(res, "Student ID is required", 400);
     }
 
     // Fetch all student-related data from blockchain
     const [certificates, enrollments, scholarships] = await Promise.all([
       ledgerService.queryCertificatesByStudent(studentId),
       ledgerService.queryStudentEnrollments(studentId),
-      ledgerService.queryStudentScholarships(studentId)
+      ledgerService.queryStudentScholarships(studentId),
     ]);
 
     const profile = {
@@ -103,14 +105,14 @@ async function getStudentProfile(req, res) {
       statistics: {
         totalCertificates: certificates ? certificates.length : 0,
         totalEnrollments: enrollments ? enrollments.length : 0,
-        totalScholarships: scholarships ? scholarships.length : 0
-      }
+        totalScholarships: scholarships ? scholarships.length : 0,
+      },
     };
 
     return success(res, profile);
   } catch (err) {
-    console.error('Get student profile error:', err);
-    return error(res, 'Failed to retrieve student profile', 500);
+    console.error("Get student profile error:", err);
+    return error(res, "Failed to retrieve student profile", 500);
   }
 }
 
@@ -122,19 +124,48 @@ async function getCertificate(req, res) {
     const { certificateId } = req.params;
 
     if (!certificateId) {
-      return error(res, 'Certificate ID is required', 400);
+      return error(res, "Certificate ID is required", 400);
     }
 
     const certificate = await ledgerService.queryCertificate(certificateId);
-    
+
     if (!certificate) {
-      return error(res, 'Certificate not found', 404);
+      return error(res, "Certificate not found", 404);
     }
 
     return success(res, certificate);
   } catch (err) {
-    console.error('Get certificate error:', err);
-    return error(res, 'Failed to retrieve certificate', 500);
+    console.error("Get certificate error:", err);
+    return error(res, "Failed to retrieve certificate", 500);
+  }
+}
+
+/**
+ * Search students by name or student ID
+ */
+async function searchStudents(req, res) {
+  try {
+    const { searchTerm } = req.query;
+    const authService = require("../services/auth.service");
+    const students = await authService.searchStudents(searchTerm);
+    return success(res, students);
+  } catch (err) {
+    console.error("Search students error:", err);
+    return error(res, "Failed to search students", 500);
+  }
+}
+
+/**
+ * Get all students
+ */
+async function getAllStudents(req, res) {
+  try {
+    const authService = require("../services/auth.service");
+    const students = await authService.getAllStudents();
+    return success(res, students);
+  } catch (err) {
+    console.error("Get all students error:", err);
+    return error(res, "Failed to get students", 500);
   }
 }
 
@@ -144,5 +175,7 @@ module.exports = {
   getStudentScholarships,
   verifyStudentCertificate,
   getStudentProfile,
-  getCertificate
+  getCertificate,
+  searchStudents,
+  getAllStudents,
 };

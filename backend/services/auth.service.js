@@ -1,12 +1,13 @@
-const User = require('../models/user.model');
-const NGO = require('../models/ngo.model');
+const User = require("../models/user.model");
+const NGO = require("../models/ngo.model");
+const bcrypt = require("bcryptjs");
 
-// Sample users database with RBAC support
+// Sample users database with RBAC support and hashed passwords
 const usersDatabase = [
   {
     userId: "ADMIN001",
     email: "admin@mentora.org",
-    password: "admin123",
+    password: bcrypt.hashSync("admin123", 10),
     name: "System Admin",
     role: "ADMIN",
     organization: "Mentora Platform",
@@ -16,7 +17,7 @@ const usersDatabase = [
   {
     userId: "NGO001",
     email: "ngo@scholars-fund.org",
-    password: "ngo123",
+    password: bcrypt.hashSync("ngo123", 10),
     name: "Scholars Fund NGO",
     role: "NGO",
     organization: "Scholars Fund",
@@ -26,7 +27,7 @@ const usersDatabase = [
   {
     userId: "NGO002",
     email: "education@hope-foundation.org",
-    password: "ngo123",
+    password: bcrypt.hashSync("ngo123", 10),
     name: "Hope Foundation",
     role: "NGO",
     organization: "Hope Foundation",
@@ -36,7 +37,7 @@ const usersDatabase = [
   {
     userId: "STU001",
     email: "student1@university.edu",
-    password: "student123",
+    password: bcrypt.hashSync("student123", 10),
     name: "John Student",
     role: "STUDENT",
     organization: "",
@@ -46,7 +47,7 @@ const usersDatabase = [
   {
     userId: "STU002",
     email: "student2@university.edu",
-    password: "student123",
+    password: bcrypt.hashSync("student123", 10),
     name: "Jane Student",
     role: "STUDENT",
     organization: "",
@@ -100,11 +101,15 @@ const ngoDatabase = [
  * @returns {Promise<object|null>} User object or null
  */
 async function authenticateUser(email, password) {
-  const user = usersDatabase.find(
-    (u) => u.email === email && u.password === password
-  );
+  const user = usersDatabase.find((u) => u.email === email);
 
   if (!user) {
+    return null;
+  }
+
+  // Compare hashed password
+  const isValidPassword = await bcrypt.compare(password, user.password);
+  if (!isValidPassword) {
     return null;
   }
 
@@ -120,7 +125,7 @@ async function authenticateUser(email, password) {
  */
 async function getUserById(userId) {
   const user = usersDatabase.find((u) => u.userId === userId);
-  
+
   if (!user) {
     return null;
   }
@@ -137,8 +142,8 @@ async function getUserById(userId) {
  */
 async function getNGOByUserId(userId) {
   const user = usersDatabase.find((u) => u.userId === userId);
-  
-  if (!user || user.role !== 'NGO') {
+
+  if (!user || user.role !== "NGO") {
     return null;
   }
 
@@ -152,7 +157,7 @@ async function getNGOByUserId(userId) {
  */
 async function getUserByEmail(email) {
   const user = usersDatabase.find((u) => u.email === email);
-  
+
   if (!user) {
     return null;
   }
@@ -180,19 +185,48 @@ async function getNGOById(ngoId) {
 }
 
 /**
- * Create user (for future implementation)
+ * Create user (simple in-memory implementation)
  * @param {object} userData - User data
- * @returns {Promise<object>} Created user
+ * @returns {Promise<object>} Created user (without password)
  */
 async function createUser(userData) {
-  const user = User.fromObject(userData);
-  const validation = user.validate();
-  
-  if (!validation.valid) {
-    throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+  const base = {
+    role: "STUDENT",
+    organization: "",
+    studentId: "",
+    branchId: "",
+    ...userData,
+  };
+
+  // Prevent duplicate emails
+  const existing = usersDatabase.find((u) => u.email === base.email);
+  if (existing) {
+    throw new Error("An account with this email already exists");
   }
 
-  // In production, this would save to database
+  // Generate an ID if missing
+  if (!base.userId) {
+    base.userId = User.generateId(base.role);
+  }
+
+  // Hash password
+  const hashedPassword = await bcrypt.hash(base.password, 10);
+
+  // Build full user including hashed password for storage
+  const user = {
+    userId: base.userId,
+    email: base.email,
+    password: hashedPassword,
+    name: base.name,
+    role: base.role,
+    organization: base.organization,
+    studentId: base.studentId,
+    branchId: base.branchId,
+  };
+
+  // In this demo, push into the in-memory database.
+  usersDatabase.push(user);
+
   const { password: _, ...userWithoutPassword } = user;
   return userWithoutPassword;
 }
@@ -205,13 +239,50 @@ async function createUser(userData) {
  */
 async function updateUser(userId, updateData) {
   const user = await getUserById(userId);
-  
+
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
   // In production, this would update in database
   return { ...user, ...updateData };
+}
+
+/**
+ * Search students by name or student ID
+ * @param {string} searchTerm - Search term for name or student ID
+ * @returns {Promise<Array>} Array of matching students
+ */
+async function searchStudents(searchTerm) {
+  if (!searchTerm) {
+    return [];
+  }
+
+  const searchLower = searchTerm.toLowerCase();
+  return usersDatabase
+    .filter(
+      (user) =>
+        user.role === "STUDENT" &&
+        (user.name.toLowerCase().includes(searchLower) ||
+          user.studentId.toLowerCase().includes(searchLower)),
+    )
+    .map((user) => {
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+}
+
+/**
+ * Get all students
+ * @returns {Promise<Array>} Array of all students
+ */
+async function getAllStudents() {
+  return usersDatabase
+    .filter((user) => user.role === "STUDENT")
+    .map((user) => {
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
 }
 
 module.exports = {
@@ -223,6 +294,8 @@ module.exports = {
   getNGOById,
   createUser,
   updateUser,
+  searchStudents,
+  getAllStudents,
   // Legacy support
   authenticateStaff: authenticateUser,
 };

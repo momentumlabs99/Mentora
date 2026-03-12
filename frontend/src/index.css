@@ -1,0 +1,38 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #FAFBFC;
+  color: #1e293b;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+/* Smooth transitions */
+input, select, button {
+  transition: all 0.15s ease;
+}
+
+/* Focus ring style */
+input:focus, select:focus {
+  outline: none;
+  border-color: #0D5C63;
+  box-shadow: 0 0 0 3px rgba(13, 92, 99, 0.1);
+}

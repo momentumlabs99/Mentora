@@ -1,6 +1,7 @@
 const authService = require('../services/auth.service');
 const jwtService = require('../services/jwt.service');
 const { success, error } = require('../utils/response.util');
+const bcrypt = require('bcryptjs');
 
 /**
  * Login controller
@@ -47,6 +48,50 @@ async function login(req, res) {
   } catch (err) {
     console.error('Login error:', err);
     return error(res, 'Internal server error', 500);
+  }
+}
+
+/**
+ * Register controller
+ * Creates a new user account and returns a JWT token
+ */
+async function signup(req, res) {
+  try {
+    const { email, password, name, role, organization } = req.body;
+
+    if (!email || !password || !name) {
+      return error(res, 'Name, email, and password are required', 400);
+    }
+
+    const normalizedRole = role || 'STUDENT';
+
+    const user = await authService.createUser({
+      email,
+      password,
+      name,
+      role: normalizedRole,
+      organization,
+    });
+
+    const token = jwtService.generateToken({
+      id: user.userId,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      organization: user.organization,
+      studentId: user.studentId,
+      branchId: user.branchId,
+    });
+
+    let ngoDetails = null;
+    if (user.role === 'NGO') {
+      ngoDetails = await authService.getNGOByUserId(user.userId);
+    }
+
+    return success(res, { user, ngo: ngoDetails, token }, 201);
+  } catch (err) {
+    console.error('Signup error:', err);
+    return error(res, err.message || 'Unable to create account', 400);
   }
 }
 
@@ -135,5 +180,6 @@ module.exports = {
   login,
   verifyToken,
   logout,
-  getProfile
+  getProfile,
+  signup,
 };
