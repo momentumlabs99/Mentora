@@ -1,49 +1,71 @@
 import { useNavigate } from 'react-router-dom';
-
-const quickActions = [
-  {
-    to: '/app/courses',
-    icon: '📚',
-    title: 'Courses',
-    desc: 'Browse & enroll in courses',
-    color: 'bg-teal-light text-teal-deep',
-  },
-  {
-    to: '/app/student',
-    icon: '🎓',
-    title: 'Student',
-    desc: 'Profile, certificates & more',
-    color: 'bg-green-light text-green-earth',
-  },
-  {
-    to: '/app/donor',
-    icon: '💰',
-    title: 'Donor Hub',
-    desc: 'Track scholarship impact',
-    color: 'bg-warm-50 text-warm-600',
-  },
-  {
-    to: '/app/verify',
-    icon: '✅',
-    title: 'Verify',
-    desc: 'Check any certificate',
-    color: 'bg-slate-100 text-slate-700',
-  },
-];
-
-const features = [
-  { icon: '🔗', title: 'Blockchain-Secured', desc: 'Every credential is tamper-proof and verifiable.' },
-  { icon: '📱', title: 'Mobile-First', desc: 'Built for low-end devices and intermittent connectivity.' },
-  { icon: '🌍', title: 'Cross-Border', desc: 'Portable credentials recognized globally.' },
-  { icon: '🔍', title: 'Transparent', desc: 'Track every scholarship dollar from donor to learner.' },
-];
+import { useAuth } from '../state/auth';
+import AdminDashboard from './AdminDashboard';
+import NgoDashboard from './NgoDashboard';
+import StudentDashboard from './StudentDashboard';
 
 function OverviewPage() {
+  const { role } = useAuth();
+
+  if (role === 'ADMIN') {
+    return <AdminDashboard />;
+  }
+
+  if (role === 'NGO') {
+    return <NgoDashboard />;
+  }
+
+  if (role === 'STUDENT') {
+    return <StudentDashboard />;
+  }
+
+  // Default fallback
+  return <GenericDashboard />;
+}
+
+function GenericDashboard() {
   const navigate = useNavigate();
+
+  const quickActions = [
+    {
+      to: '/app/courses',
+      icon: '📚',
+      title: 'Courses',
+      desc: 'Browse & enroll in courses',
+      color: 'bg-teal-light text-teal-deep',
+    },
+    {
+      to: '/app/student',
+      icon: '🎓',
+      title: 'Student',
+      desc: 'Profile, certificates & more',
+      color: 'bg-green-light text-green-earth',
+    },
+    {
+      to: '/app/donor',
+      icon: '💰',
+      title: 'Donor Hub',
+      desc: 'Track scholarship impact',
+      color: 'bg-warm-50 text-warm-600',
+    },
+    {
+      to: '/app/verify',
+      icon: '✅',
+      title: 'Verify',
+      desc: 'Check any certificate',
+      color: 'bg-slate-100 text-slate-700',
+    },
+  ];
+
+  const features = [
+    { icon: '🔗', title: 'Blockchain-Secured', desc: 'Every credential is tamper-proof and verifiable.' },
+    { icon: '📱', title: 'Mobile-First', desc: 'Built for low-end devices and intermittent connectivity.' },
+    { icon: '🌍', title: 'Cross-Border', desc: 'Portable credentials recognized globally.' },
+    { icon: '🔍', title: 'Transparent', desc: 'Track every scholarship dollar from donor to learner.' },
+  ];
 
   return (
     <div className="space-y-4">
-      {/* Welcome banner */}
       <div className="rounded-3xl bg-gradient-to-br from-green-earth to-green-600 p-5 text-white shadow-card">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-white/70">Dashboard</p>
         <h2 className="mt-1 text-lg font-bold leading-tight">
@@ -54,7 +76,6 @@ function OverviewPage() {
         </p>
       </div>
 
-      {/* Quick actions grid */}
       <div className="grid grid-cols-2 gap-3">
         {quickActions.map((action) => (
           <button
@@ -71,7 +92,6 @@ function OverviewPage() {
         ))}
       </div>
 
-      {/* Features */}
       <div className="rounded-2xl bg-white p-4 shadow-card">
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
           Why Mentora?

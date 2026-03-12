@@ -1,6 +1,7 @@
 const authService = require('../services/auth.service');
 const jwtService = require('../services/jwt.service');
 const { success, error } = require('../utils/response.util');
+const bcrypt = require('bcryptjs');
 
 /**
  * Login controller

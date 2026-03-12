@@ -1,17 +1,58 @@
 import { NavLink } from 'react-router-dom';
-
-const items = [
-  { to: '/app', label: 'Home', icon: HomeIcon, end: true },
-  { to: '/app/courses', label: 'Courses', icon: BookIcon },
-  { to: '/app/student', label: 'Student', icon: UserIcon },
-  { to: '/app/donor', label: 'Donor', icon: HeartIcon },
-  { to: '/app/verify', label: 'Verify', icon: CheckIcon },
-];
+import { useAuth } from '../state/auth';
 
 function BottomNav() {
+  const { role } = useAuth();
+
+  const getItemsForRole = () => {
+    const baseItems = [
+      { to: '/app', label: 'Home', icon: HomeIcon, end: true, roles: ['ADMIN', 'NGO', 'STUDENT'] },
+    ];
+
+    if (role === 'ADMIN') {
+      return [
+        ...baseItems,
+        { to: '/app/courses', label: 'Courses', icon: BookIcon, roles: ['ADMIN'] },
+        { to: '/app/student', label: 'Users', icon: UserIcon, roles: ['ADMIN'] },
+        { to: '/app/ngo', label: 'NGOs', icon: BuildingIcon, roles: ['ADMIN'] },
+        { to: '/app/verify', label: 'Verify', icon: CheckIcon, roles: ['ADMIN'] },
+      ];
+    }
+
+    if (role === 'NGO') {
+      return [
+        ...baseItems,
+        { to: '/app/courses', label: 'Courses', icon: BookIcon, roles: ['NGO'] },
+        { to: '/app/donor', label: 'Funds', icon: HeartIcon, roles: ['NGO'] },
+        { to: '/app/verify', label: 'Verify', icon: CheckIcon, roles: ['NGO'] },
+        { to: '/app/ngo', label: 'Profile', icon: BuildingIcon, roles: ['NGO'] },
+      ];
+    }
+
+    if (role === 'STUDENT') {
+      return [
+        ...baseItems,
+        { to: '/app/courses', label: 'Courses', icon: BookIcon, roles: ['STUDENT'] },
+        { to: '/app/student', label: 'Profile', icon: UserIcon, roles: ['STUDENT'] },
+        { to: '/app/verify', label: 'Verify', icon: CheckIcon, roles: ['STUDENT'] },
+      ];
+    }
+
+    // Default items
+    return [
+      { to: '/app', label: 'Home', icon: HomeIcon, end: true },
+      { to: '/app/courses', label: 'Courses', icon: BookIcon },
+      { to: '/app/student', label: 'Student', icon: UserIcon },
+      { to: '/app/donor', label: 'Donor', icon: HeartIcon },
+      { to: '/app/verify', label: 'Verify', icon: CheckIcon },
+    ];
+  };
+
+  const items = getItemsForRole();
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-100 bg-white/95 backdrop-blur-lg md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-5">
+      <div className="mx-auto grid max-w-lg" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
         {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -100,6 +141,20 @@ function CheckIcon() {
     <IconBase>
       <circle cx="12" cy="12" r="9" />
       <path d="m9 12 2 2 4-4" />
+    </IconBase>
+  );
+}
+
+function BuildingIcon() {
+  return (
+    <IconBase>
+      <path d="M3 21h18" />
+      <path d="M5 21V7l8-4v18" />
+      <path d="M19 21V11l-6-4" />
+      <path d="M9 9v.01" />
+      <path d="M9 12v.01" />
+      <path d="M9 15v.01" />
+      <path d="M9 18v.01" />
     </IconBase>
   );
 }

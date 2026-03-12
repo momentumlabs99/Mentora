@@ -11,8 +11,10 @@ import NgoPage from '../pages/NgoPage';
 import VerificationPage from '../pages/VerificationPage';
 
 function Protected({ children }) {
-  // Auth is intentionally not enforced so you can explore the UI
-  // without needing a backend account.
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
   return children;
 }
 
@@ -23,7 +25,7 @@ function AppRouter() {
     <Routes>
       <Route
         path="/"
-        element={<Navigate to={isAuthenticated ? '/app' : '/app'} replace />}
+        element={<Navigate to={isAuthenticated ? '/app' : '/login'} replace />}
       />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignUpPage />} />
@@ -50,4 +52,3 @@ function AppRouter() {
 }
 
 export default AppRouter;
-

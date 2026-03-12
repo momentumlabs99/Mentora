@@ -1,12 +1,13 @@
 const User = require('../models/user.model');
 const NGO = require('../models/ngo.model');
+const bcrypt = require('bcryptjs');
 
-// Sample users database with RBAC support
+// Sample users database with RBAC support and hashed passwords
 const usersDatabase = [
   {
     userId: "ADMIN001",
     email: "admin@mentora.org",
-    password: "admin123",
+    password: bcrypt.hashSync("admin123", 10),
     name: "System Admin",
     role: "ADMIN",
     organization: "Mentora Platform",
@@ -16,7 +17,7 @@ const usersDatabase = [
   {
     userId: "NGO001",
     email: "ngo@scholars-fund.org",
-    password: "ngo123",
+    password: bcrypt.hashSync("ngo123", 10),
     name: "Scholars Fund NGO",
     role: "NGO",
     organization: "Scholars Fund",
@@ -26,7 +27,7 @@ const usersDatabase = [
   {
     userId: "NGO002",
     email: "education@hope-foundation.org",
-    password: "ngo123",
+    password: bcrypt.hashSync("ngo123", 10),
     name: "Hope Foundation",
     role: "NGO",
     organization: "Hope Foundation",
@@ -36,7 +37,7 @@ const usersDatabase = [
   {
     userId: "STU001",
     email: "student1@university.edu",
-    password: "student123",
+    password: bcrypt.hashSync("student123", 10),
     name: "John Student",
     role: "STUDENT",
     organization: "",
@@ -46,7 +47,7 @@ const usersDatabase = [
   {
     userId: "STU002",
     email: "student2@university.edu",
-    password: "student123",
+    password: bcrypt.hashSync("student123", 10),
     name: "Jane Student",
     role: "STUDENT",
     organization: "",
@@ -100,11 +101,15 @@ const ngoDatabase = [
  * @returns {Promise<object|null>} User object or null
  */
 async function authenticateUser(email, password) {
-  const user = usersDatabase.find(
-    (u) => u.email === email && u.password === password
-  );
+  const user = usersDatabase.find((u) => u.email === email);
 
   if (!user) {
+    return null;
+  }
+
+  // Compare hashed password
+  const isValidPassword = await bcrypt.compare(password, user.password);
+  if (!isValidPassword) {
     return null;
   }
 
@@ -204,25 +209,23 @@ async function createUser(userData) {
     base.userId = User.generateId(base.role);
   }
 
-  // Build full user including password for storage
-  const user = User.fromObject(base, true);
-  const validation = user.validate();
+  // Hash password
+  const hashedPassword = await bcrypt.hash(base.password, 10);
 
-  if (!validation.valid) {
-    throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
-  }
+  // Build full user including hashed password for storage
+  const user = {
+    userId: base.userId,
+    email: base.email,
+    password: hashedPassword,
+    name: base.name,
+    role: base.role,
+    organization: base.organization,
+    studentId: base.studentId,
+    branchId: base.branchId,
+  };
 
   // In this demo, push into the in-memory database.
-  usersDatabase.push({
-    userId: user.userId,
-    email: user.email,
-    password: user.password,
-    name: user.name,
-    role: user.role,
-    organization: user.organization,
-    studentId: user.studentId,
-    branchId: user.branchId,
-  });
+  usersDatabase.push(user);
 
   const { password: _, ...userWithoutPassword } = user;
   return userWithoutPassword;

@@ -1,21 +1,39 @@
 import { mentoraApi, toReadableError } from './api';
 
+// Add axios interceptor for token expiration
+mentoraApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('mentora_token');
+      localStorage.removeItem('mentora_role');
+      localStorage.removeItem('mentora_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export async function login({ identifier, password }) {
   try {
-    const { data } = await mentoraApi.post('/auth/login', {
+    const response = await mentoraApi.post('/auth/login', {
       // Backend may expect email/username under a specific key; we pass both.
       email: identifier,
       username: identifier,
       password,
     });
 
-    const token = data.token || data.accessToken || data.jwt;
+    // Backend wraps response in { success: true, data: {...} }
+    const responseData = response.data.data || response.data;
+    
+    const token = responseData.token || responseData.accessToken || responseData.jwt;
     if (!token) {
       throw new Error('Login succeeded but no token was returned by the API.');
     }
 
-    const role = data.user?.role || data.role || '';
-    return { token, role, raw: data };
+    const role = responseData.user?.role || responseData.role || '';
+    return { token, role, raw: responseData };
   } catch (error) {
     throw toReadableError(error, 'Unable to login');
   }
@@ -23,7 +41,7 @@ export async function login({ identifier, password }) {
 
 export async function signup({ name, email, password, role, organization }) {
   try {
-    const { data } = await mentoraApi.post('/auth/signup', {
+    const response = await mentoraApi.post('/auth/signup', {
       name,
       email,
       password,
@@ -31,13 +49,16 @@ export async function signup({ name, email, password, role, organization }) {
       organization,
     });
 
-    const token = data.token || data.accessToken || data.jwt;
+    // Backend wraps response in { success: true, data: {...} }
+    const responseData = response.data.data || response.data;
+
+    const token = responseData.token || responseData.accessToken || responseData.jwt;
     if (!token) {
       throw new Error('Sign up succeeded but no token was returned by the API.');
     }
 
-    const resolvedRole = data.user?.role || data.role || '';
-    return { token, role: resolvedRole, raw: data };
+    const resolvedRole = responseData.user?.role || responseData.role || '';
+    return { token, role: resolvedRole, raw: responseData };
   } catch (error) {
     throw toReadableError(error, 'Unable to create account');
   }

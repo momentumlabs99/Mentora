@@ -16,8 +16,8 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { token, role } = await login({ identifier, password });
-      setSession(token, role);
+      const { token, role, raw } = await login({ identifier, password });
+      setSession(token, role, raw.user);
       navigate('/app', { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to login.');
