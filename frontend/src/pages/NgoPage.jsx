@@ -37,70 +37,88 @@ function NgoPage() {
     }
   };
 
-  useEffect(() => {
-    loadPublicNgos();
-  }, []);
+  useEffect(() => { loadPublicNgos(); }, []);
 
   return (
-    <section className="space-y-3 rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-slate-200">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900">Partner NGOs</h2>
-          <p className="mt-0.5 text-xs text-slate-600">
-            Discover organizations delivering Mentora programs on the ground.
-          </p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="rounded-2xl bg-white p-4 shadow-card">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Partner NGOs</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Organizations delivering Mentora programs on the ground.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadMyProfile}
+            className="flex-none rounded-xl bg-teal-deep px-3 py-2 text-xs font-semibold text-white shadow-card transition active:scale-95"
+          >
+            My profile
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={loadMyProfile}
-          className="mt-1 inline-flex items-center justify-center rounded-full bg-teal-deep px-3 py-1.5 text-xs font-semibold text-white shadow-sm sm:mt-0"
-        >
-          View my NGO profile
-        </button>
       </div>
 
-      {loading && <p className="text-xs text-slate-600">Loading NGO data…</p>}
-      {error && <p className="text-xs font-medium text-red-600">{error}</p>}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-deep border-t-transparent" />
+        </div>
+      )}
 
+      {error && (
+        <div className="rounded-2xl bg-red-50 px-4 py-3 text-xs font-medium text-red-600">{error}</div>
+      )}
+
+      {/* NGO grid */}
       {ngos && ngos.length > 0 && (
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {ngos.map((ngo) => (
-            <article
+            <div
               key={ngo.id || ngo.ngoId || ngo._id}
-              className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs"
+              className="rounded-2xl bg-white p-4 shadow-card"
             >
-              <p className="text-sm font-semibold text-slate-900">
-                {ngo.name || 'NGO Partner'}
-              </p>
-              {ngo.country && (
-                <p className="mt-0.5 text-[11px] text-slate-600">Country: {ngo.country}</p>
-              )}
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-light text-base font-bold text-teal-deep">
+                  {(ngo.name || 'N')[0].toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-900">{ngo.name || 'NGO Partner'}</p>
+                  {ngo.country && (
+                    <p className="text-[11px] text-slate-500">📍 {ngo.country}</p>
+                  )}
+                </div>
+              </div>
               {ngo.focusAreas && (
-                <p className="mt-1 text-[11px] text-slate-600">
-                  Focus:{' '}
-                  {Array.isArray(ngo.focusAreas)
-                    ? ngo.focusAreas.join(', ')
-                    : String(ngo.focusAreas)}
-                </p>
+                <div className="mt-2.5 flex flex-wrap gap-1">
+                  {(Array.isArray(ngo.focusAreas) ? ngo.focusAreas : [String(ngo.focusAreas)]).map(
+                    (area) => (
+                      <span
+                        key={area}
+                        className="rounded-lg bg-green-light px-2 py-0.5 text-[10px] font-semibold text-green-earth"
+                      >
+                        {area}
+                      </span>
+                    ),
+                  )}
+                </div>
               )}
-            </article>
+            </div>
           ))}
         </div>
       )}
 
+      {/* Profile */}
       {profile && (
-        <div className="space-y-1">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            My NGO profile
-          </h3>
-          <pre className="max-h-56 overflow-auto rounded-xl bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-50">
+        <div className="rounded-2xl bg-white p-4 shadow-card">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">My NGO Profile</p>
+          <pre className="max-h-56 overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100">
 {JSON.stringify(profile, null, 2)}
           </pre>
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
 export default NgoPage;
-

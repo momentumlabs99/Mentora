@@ -10,8 +10,8 @@ const items = [
 
 function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
-      <div className="mx-auto grid max-w-3xl grid-cols-5">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-100 bg-white/95 backdrop-blur-lg md:hidden">
+      <div className="mx-auto grid max-w-lg grid-cols-5">
         {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -19,13 +19,22 @@ function BottomNav() {
             end={end}
             className={({ isActive }) =>
               [
-                'flex flex-col items-center justify-center gap-1 px-2 py-2 text-[10px] font-medium',
-                isActive ? 'text-teal-deep' : 'text-slate-500',
+                'relative flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 text-[10px] font-medium transition-colors',
+                isActive
+                  ? 'text-teal-deep'
+                  : 'text-slate-400 active:text-slate-600',
               ].join(' ')
             }
           >
-            <Icon />
-            <span className="leading-none">{label}</span>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span className="absolute top-0 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-teal-deep" />
+                )}
+                <Icon />
+                <span className="leading-none">{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
@@ -41,7 +50,7 @@ function IconBase({ children }) {
       className="h-5 w-5"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -89,10 +98,10 @@ function HeartIcon() {
 function CheckIcon() {
   return (
     <IconBase>
-      <path d="M20 6 9 17l-5-5" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 12 2 2 4-4" />
     </IconBase>
   );
 }
 
 export default BottomNav;
-

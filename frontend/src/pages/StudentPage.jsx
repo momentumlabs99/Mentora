@@ -5,13 +5,19 @@ import {
   fetchStudentProfile,
   fetchStudentScholarships,
 } from '../api/students';
-
 import { useAuth } from '../state/auth';
+
+const TABS = [
+  { key: 'profile', label: 'Profile', icon: '👤' },
+  { key: 'certificates', label: 'Certs', icon: '🏅' },
+  { key: 'enrollments', label: 'Enrolled', icon: '📖' },
+  { key: 'scholarships', label: 'Aid', icon: '💰' },
+];
 
 function StudentPage() {
   const { token } = useAuth();
   const [studentId, setStudentId] = useState('');
-  const [view, setView] = useState('profile');
+  const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState(null);
@@ -21,7 +27,7 @@ function StudentPage() {
       setError('Enter a student ID first.');
       return;
     }
-    setView(type);
+    setActiveTab(type);
     setError('');
     setLoading(true);
     try {
@@ -40,68 +46,84 @@ function StudentPage() {
   };
 
   return (
-    <section className="space-y-3 rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-slate-200">
-      <div>
-        <h2 className="text-base font-semibold text-slate-900">Student space</h2>
-        <p className="mt-0.5 text-xs text-slate-600">
-          Look up student profiles, certificates, enrollments, and scholarships.
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="rounded-2xl bg-white p-4 shadow-card">
+        <h2 className="text-lg font-bold text-slate-900">Student Space</h2>
+        <p className="mt-0.5 text-xs text-slate-500">
+          Look up profiles, certificates, enrollments, and scholarships.
         </p>
-      </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="flex-1 text-xs font-medium text-slate-700">
-          Student ID
+        <div className="mt-3 flex items-center gap-2 rounded-xl bg-surface px-3 py-2.5">
+          <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
           <input
             type="text"
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-teal-deep focus:bg-white"
-            placeholder="e.g. STU-12345"
+            className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            placeholder="Student ID (e.g. STU-12345)"
             value={studentId}
-            onChange={(event) => setStudentId(event.target.value)}
+            onChange={(e) => setStudentId(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && load(activeTab)}
           />
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => load('profile')}
-            className="rounded-full bg-teal-deep px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-          >
-            Profile
-          </button>
-          <button
-            type="button"
-            onClick={() => load('certificates')}
-            className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-          >
-            Certificates
-          </button>
-          <button
-            type="button"
-            onClick={() => load('enrollments')}
-            className="rounded-full bg-green-earth px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
-          >
-            Enrollments
-          </button>
-          <button
-            type="button"
-            onClick={() => load('scholarships')}
-            className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-900"
-          >
-            Scholarships
-          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => load(tab.key)}
+              className={[
+                'flex flex-none items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition active:scale-95',
+                activeTab === tab.key
+                  ? 'bg-teal-deep text-white shadow-card'
+                  : 'bg-surface text-slate-600 hover:bg-slate-100',
+              ].join(' ')}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {loading && <p className="text-xs text-slate-600">Loading {view}…</p>}
-      {error && <p className="text-xs font-medium text-red-600">{error}</p>}
-
-      {data && (
-        <pre className="max-h-60 overflow-auto rounded-xl bg-slate-900 p-3 text-[11px] leading-relaxed text-slate-50">
-{JSON.stringify(data, null, 2)}
-        </pre>
+      {/* Results */}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-deep border-t-transparent" />
+        </div>
       )}
-    </section>
+
+      {error && (
+        <div className="rounded-2xl bg-red-50 px-4 py-3 text-xs font-medium text-red-600">{error}</div>
+      )}
+
+      {data && !loading && (
+        <div className="rounded-2xl bg-white p-4 shadow-card">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="rounded-lg bg-teal-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-deep">
+              {activeTab}
+            </span>
+            <span className="text-[11px] text-slate-400">Student: {studentId}</span>
+          </div>
+          <pre className="max-h-72 overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100">
+{JSON.stringify(data, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {!data && !loading && !error && (
+        <div className="rounded-2xl bg-white p-8 text-center shadow-card">
+          <p className="text-2xl">🎓</p>
+          <p className="mt-2 text-sm font-semibold text-slate-700">Enter a student ID</p>
+          <p className="mt-1 text-xs text-slate-500">Then tap a category to look up their data.</p>
+        </div>
+      )}
+    </div>
   );
 }
 
 export default StudentPage;
-
