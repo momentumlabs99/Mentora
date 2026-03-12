@@ -1,6 +1,6 @@
-const User = require('../models/user.model');
-const NGO = require('../models/ngo.model');
-const bcrypt = require('bcryptjs');
+const User = require("../models/user.model");
+const NGO = require("../models/ngo.model");
+const bcrypt = require("bcryptjs");
 
 // Sample users database with RBAC support and hashed passwords
 const usersDatabase = [
@@ -125,7 +125,7 @@ async function authenticateUser(email, password) {
  */
 async function getUserById(userId) {
   const user = usersDatabase.find((u) => u.userId === userId);
-  
+
   if (!user) {
     return null;
   }
@@ -142,8 +142,8 @@ async function getUserById(userId) {
  */
 async function getNGOByUserId(userId) {
   const user = usersDatabase.find((u) => u.userId === userId);
-  
-  if (!user || user.role !== 'NGO') {
+
+  if (!user || user.role !== "NGO") {
     return null;
   }
 
@@ -157,7 +157,7 @@ async function getNGOByUserId(userId) {
  */
 async function getUserByEmail(email) {
   const user = usersDatabase.find((u) => u.email === email);
-  
+
   if (!user) {
     return null;
   }
@@ -191,17 +191,17 @@ async function getNGOById(ngoId) {
  */
 async function createUser(userData) {
   const base = {
-    role: 'STUDENT',
-    organization: '',
-    studentId: '',
-    branchId: '',
+    role: "STUDENT",
+    organization: "",
+    studentId: "",
+    branchId: "",
     ...userData,
   };
 
   // Prevent duplicate emails
   const existing = usersDatabase.find((u) => u.email === base.email);
   if (existing) {
-    throw new Error('An account with this email already exists');
+    throw new Error("An account with this email already exists");
   }
 
   // Generate an ID if missing
@@ -239,13 +239,50 @@ async function createUser(userData) {
  */
 async function updateUser(userId, updateData) {
   const user = await getUserById(userId);
-  
+
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 
   // In production, this would update in database
   return { ...user, ...updateData };
+}
+
+/**
+ * Search students by name or student ID
+ * @param {string} searchTerm - Search term for name or student ID
+ * @returns {Promise<Array>} Array of matching students
+ */
+async function searchStudents(searchTerm) {
+  if (!searchTerm) {
+    return [];
+  }
+
+  const searchLower = searchTerm.toLowerCase();
+  return usersDatabase
+    .filter(
+      (user) =>
+        user.role === "STUDENT" &&
+        (user.name.toLowerCase().includes(searchLower) ||
+          user.studentId.toLowerCase().includes(searchLower)),
+    )
+    .map((user) => {
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+}
+
+/**
+ * Get all students
+ * @returns {Promise<Array>} Array of all students
+ */
+async function getAllStudents() {
+  return usersDatabase
+    .filter((user) => user.role === "STUDENT")
+    .map((user) => {
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
 }
 
 module.exports = {
@@ -257,6 +294,8 @@ module.exports = {
   getNGOById,
   createUser,
   updateUser,
+  searchStudents,
+  getAllStudents,
   // Legacy support
   authenticateStaff: authenticateUser,
 };

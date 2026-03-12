@@ -10,6 +10,7 @@ import DonorPage from "../pages/DonorPage";
 import NgoPage from "../pages/NgoPage";
 import VerificationPage from "../pages/VerificationPage";
 import CertificatesPage from "../pages/CertificatesPage";
+import ProfilePage from "../pages/ProfilePage";
 
 function Protected({ children }) {
   const { isAuthenticated } = useAuth();
@@ -46,6 +47,7 @@ function AppRouter() {
         <Route path="ngo" element={<NgoPage />} />
         <Route path="verify" element={<VerificationPage />} />
         <Route path="certificates" element={<CertificatesPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

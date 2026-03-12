@@ -57,14 +57,6 @@ function StudentDashboard() {
               <p className="text-primary/20 text-sm opacity-90 mb-4">
                 You've completed 75% of this week's goals.
               </p>
-              <div className="flex gap-2">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium">
-                  CS Major
-                </span>
-                <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium">
-                  Year 3
-                </span>
-              </div>
             </div>
             <div className="absolute right-[-20px] top-[-20px] opacity-10">
               <span className="material-symbols-outlined text-[120px]">

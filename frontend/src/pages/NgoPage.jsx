@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchNgoProfile, fetchPublicNgos } from "../api/ngos";
 import { useAuth } from "../state/auth";
-import { useNavigate } from "react-router-dom";
 
 function NgoPage() {
   const { token, role, signOut } = useAuth();
@@ -61,35 +60,6 @@ function NgoPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white px-4 py-2 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-light text-sm font-bold text-teal-deep">
-            M
-          </div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-deep/80">
-            Mentora
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          {role && (
-            <span className="rounded-full bg-teal-light px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-deep">
-              {role}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              signOut();
-              navigate("/login", { replace: true });
-            }}
-            className="rounded-full bg-teal-light px-3 py-1.5 text-[11px] font-medium backdrop-blur-sm transition hover:bg-teal-deep/20"
-          >
-            Log out
-          </button>
-        </div>
-      </div>
-
       {loading && (
         <div className="flex items-center justify-center py-8">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-deep border-t-transparent" />

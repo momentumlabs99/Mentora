@@ -12,25 +12,42 @@ function Header() {
     navigate("/login", { replace: true });
   };
 
+  // Generate initials for avatar
+  const getInitials = (name) => {
+    return name
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Capitalize role for display
+  const capitalizeRole = (role) => {
+    return role
+      ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+      : "";
+  };
+
   return (
     <header className="flex items-center bg-white dark:bg-slate-900 p-4 sticky top-0 z-50 border-b border-primary/10 shadow-sm">
       <div className="flex size-10 shrink-0 items-center justify-center bg-primary/10 rounded-full mr-3">
-        <div
-          className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8"
-          alt="User profile"
-          style={{
-            backgroundImage:
-              'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBX6COziU4v0-cpJ89BF3iC1jXwZa8cqXuv3dGL6AAyRVROnQ73ZhcxQkT7xZH4TvfYk_LkC1uHzsUV0mZy4RMtZVz_lYR5U0e6VBN7TTvmkXDB9Jz1rJMKydWKW_WZmAgZk-sg_OlCxZ9jrmcYjFCY8dYaIyb0s29SAW0KAMXfNRmcl3_Ch8IgKFcFeQYaOcjf-IDFYUlKnu73_hnXGw7307KZ6lOt5Vw2soJ2c7d_Lr3xq_mS7pcodX00i336lacx7axjWalhAbM")',
-          }}
-        />
+        <div className="flex items-center justify-center bg-primary text-white rounded-full size-8 font-bold text-xs">
+          {getInitials(user?.name || "U")}
+        </div>
       </div>
       <div className="flex-1">
         <h1 className="text-primary text-lg font-bold leading-tight tracking-tight">
           Mentora
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {user?.name || "User"}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {user?.name || "User"}
+          </p>
+          <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full">
+            {capitalizeRole(role)}
+          </span>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <button className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">

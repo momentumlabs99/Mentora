@@ -11,11 +11,16 @@ function CoursesPage() {
   const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCourse, setNewCourse] = useState({
+    courseId: "",
+    courseCode: "",
     title: "",
     description: "",
+    instructorId: "",
+    instructorName: "",
     category: "",
     duration: "",
-    instructor: "",
+    skillLevel: "",
+    issuerOrg: "",
   });
 
   const loadCourses = async () => {
@@ -42,11 +47,16 @@ function CoursesPage() {
       });
       setShowCreateForm(false);
       setNewCourse({
+        courseId: "",
+        courseCode: "",
         title: "",
         description: "",
+        instructorId: "",
+        instructorName: "",
         category: "",
         duration: "",
-        instructor: "",
+        skillLevel: "",
+        issuerOrg: "",
       });
       loadCourses();
     } catch (err) {
@@ -130,6 +140,28 @@ function CoursesPage() {
             Create New Course
           </h3>
           <form onSubmit={handleCreateCourse} className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                placeholder="Course ID"
+                className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
+                value={newCourse.courseId}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, courseId: e.target.value })
+                }
+                required
+              />
+              <input
+                type="text"
+                placeholder="Course Code (e.g., CS101)"
+                className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
+                value={newCourse.courseCode}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, courseCode: e.target.value })
+                }
+                required
+              />
+            </div>
             <input
               type="text"
               placeholder="Course Title"
@@ -148,7 +180,30 @@ function CoursesPage() {
                 setNewCourse({ ...newCourse, description: e.target.value })
               }
               rows="3"
+              required
             />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                placeholder="Instructor ID"
+                className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
+                value={newCourse.instructorId}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, instructorId: e.target.value })
+                }
+                required
+              />
+              <input
+                type="text"
+                placeholder="Instructor Name"
+                className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
+                value={newCourse.instructorName}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, instructorName: e.target.value })
+                }
+                required
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
@@ -158,26 +213,44 @@ function CoursesPage() {
                 onChange={(e) =>
                   setNewCourse({ ...newCourse, category: e.target.value })
                 }
+                required
               />
               <input
                 type="text"
-                placeholder="Duration"
+                placeholder="Duration (e.g., 4 weeks)"
                 className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
                 value={newCourse.duration}
                 onChange={(e) =>
                   setNewCourse({ ...newCourse, duration: e.target.value })
                 }
+                required
               />
             </div>
-            <input
-              type="text"
-              placeholder="Instructor"
-              className="w-full rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
-              value={newCourse.instructor}
-              onChange={(e) =>
-                setNewCourse({ ...newCourse, instructor: e.target.value })
-              }
-            />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
+                value={newCourse.skillLevel}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, skillLevel: e.target.value })
+                }
+                required
+              >
+                <option value="">Select Skill Level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Issuer Organization"
+                className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-sm"
+                value={newCourse.issuerOrg}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, issuerOrg: e.target.value })
+                }
+                required
+              />
+            </div>
             <button
               type="submit"
               disabled={loading}

@@ -26,7 +26,7 @@ function BottomNav() {
         },
         {
           to: "/app/student",
-          label: "Users",
+          label: "Students",
           icon: UserIcon,
           roles: ["ADMIN"],
         },
@@ -35,6 +35,12 @@ function BottomNav() {
           to: "/app/verify",
           label: "Verify",
           icon: CheckIcon,
+          roles: ["ADMIN"],
+        },
+        {
+          to: "/app/profile",
+          label: "Profile",
+          icon: UserIcon,
           roles: ["ADMIN"],
         },
       ];
@@ -52,7 +58,7 @@ function BottomNav() {
         { to: "/app/donor", label: "Funds", icon: HeartIcon, roles: ["NGO"] },
         { to: "/app/verify", label: "Verify", icon: CheckIcon, roles: ["NGO"] },
         {
-          to: "/app/ngo",
+          to: "/app/profile",
           label: "Profile",
           icon: BuildingIcon,
           roles: ["NGO"],
@@ -76,7 +82,7 @@ function BottomNav() {
           roles: ["STUDENT"],
         },
         {
-          to: "/app/student",
+          to: "/app/profile",
           label: "Profile",
           icon: UserIcon,
           roles: ["STUDENT"],
