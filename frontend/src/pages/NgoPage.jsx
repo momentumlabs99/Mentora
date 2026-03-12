@@ -1,22 +1,40 @@
-import { useEffect, useState } from 'react';
-import { fetchNgoProfile, fetchPublicNgos } from '../api/ngos';
-import { useAuth } from '../state/auth';
+import { useEffect, useState } from "react";
+import { fetchNgoProfile, fetchPublicNgos } from "../api/ngos";
+import { useAuth } from "../state/auth";
+import { useNavigate } from "react-router-dom";
 
 function NgoPage() {
-  const { token } = useAuth();
+  const { token, role, signOut } = useAuth();
   const [ngos, setNgos] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const fields = [
+    { key: "ngoId", label: "NGO ID" },
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email", type: "email" },
+    { key: "phone", label: "Phone" },
+    { key: "address", label: "Address" },
+    { key: "registrationNumber", label: "Registration Number" },
+    { key: "description", label: "Description" },
+    { key: "country", label: "Country" },
+    { key: "region", label: "Region" },
+    { key: "contactPerson", label: "Contact Person" },
+    { key: "contactEmail", label: "Contact Email", type: "email" },
+    { key: "website", label: "Website", type: "website" },
+    { key: "status", label: "Status" },
+    { key: "createdAt", label: "Created At", type: "date" },
+    { key: "updatedAt", label: "Updated At", type: "date" },
+  ];
 
   const loadPublicNgos = async () => {
-    setError('');
+    setError("");
     setLoading(true);
     try {
       const result = await fetchPublicNgos();
       setNgos(result);
     } catch (err) {
-      setError(err.message || 'Unable to load NGOs.');
+      setError(err.message || "Unable to load NGOs.");
       setNgos(null);
     } finally {
       setLoading(false);
@@ -24,38 +42,50 @@ function NgoPage() {
   };
 
   const loadMyProfile = async () => {
-    setError('');
+    setError("");
     setLoading(true);
     try {
       const result = await fetchNgoProfile(token);
       setProfile(result);
     } catch (err) {
-      setError(err.message || 'Unable to load NGO profile.');
+      setError(err.message || "Unable to load NGO profile.");
       setProfile(null);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { loadPublicNgos(); }, []);
+  useEffect(() => {
+    loadPublicNgos();
+  }, []);
 
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="rounded-2xl bg-white p-4 shadow-card">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Partner NGOs</h2>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Organizations delivering Mentora programs on the ground.
-            </p>
+      <div className="flex items-center justify-between bg-white px-4 py-2 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-light text-sm font-bold text-teal-deep">
+            M
           </div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-deep/80">
+            Mentora
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          {role && (
+            <span className="rounded-full bg-teal-light px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-deep">
+              {role}
+            </span>
+          )}
           <button
             type="button"
-            onClick={loadMyProfile}
-            className="flex-none rounded-xl bg-teal-deep px-3 py-2 text-xs font-semibold text-white shadow-card transition active:scale-95"
+            onClick={() => {
+              signOut();
+              navigate("/login", { replace: true });
+            }}
+            className="rounded-full bg-teal-light px-3 py-1.5 text-[11px] font-medium backdrop-blur-sm transition hover:bg-teal-deep/20"
           >
-            My profile
+            Log out
           </button>
         </div>
       </div>
@@ -67,7 +97,9 @@ function NgoPage() {
       )}
 
       {error && (
-        <div className="rounded-2xl bg-red-50 px-4 py-3 text-xs font-medium text-red-600">{error}</div>
+        <div className="rounded-2xl bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
+          {error}
+        </div>
       )}
 
       {/* NGO grid */}
@@ -80,27 +112,32 @@ function NgoPage() {
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-light text-base font-bold text-teal-deep">
-                  {(ngo.name || 'N')[0].toUpperCase()}
+                  {(ngo.name || "N")[0].toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">{ngo.name || 'NGO Partner'}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {ngo.name || "NGO Partner"}
+                  </p>
                   {ngo.country && (
-                    <p className="text-[11px] text-slate-500">📍 {ngo.country}</p>
+                    <p className="text-[11px] text-slate-500">
+                      📍 {ngo.country}
+                    </p>
                   )}
                 </div>
               </div>
               {ngo.focusAreas && (
                 <div className="mt-2.5 flex flex-wrap gap-1">
-                  {(Array.isArray(ngo.focusAreas) ? ngo.focusAreas : [String(ngo.focusAreas)]).map(
-                    (area) => (
-                      <span
-                        key={area}
-                        className="rounded-lg bg-green-light px-2 py-0.5 text-[10px] font-semibold text-green-earth"
-                      >
-                        {area}
-                      </span>
-                    ),
-                  )}
+                  {(Array.isArray(ngo.focusAreas)
+                    ? ngo.focusAreas
+                    : [String(ngo.focusAreas)]
+                  ).map((area) => (
+                    <span
+                      key={area}
+                      className="rounded-lg bg-green-light px-2 py-0.5 text-[10px] font-semibold text-green-earth"
+                    >
+                      {area}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
@@ -111,10 +148,62 @@ function NgoPage() {
       {/* Profile */}
       {profile && (
         <div className="rounded-2xl bg-white p-4 shadow-card">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">My NGO Profile</p>
-          <pre className="max-h-56 overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100">
-{JSON.stringify(profile, null, 2)}
-          </pre>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+            My NGO Profile
+          </p>
+          <div className="space-y-3">
+            {fields.map((field) => {
+              const value = profile[field.key];
+              if (value === null || value === undefined || value === "") {
+                return null;
+              }
+              let displayValue = value;
+              let Component = "span";
+              let props = {};
+
+              if (field.type === "email") {
+                Component = "a";
+                props.href = `mailto:${value}`;
+                props.target = "_blank";
+                props.rel = "noopener noreferrer";
+              } else if (field.type === "website") {
+                Component = "a";
+                const url = value.startsWith("http")
+                  ? value
+                  : `https://${value}`;
+                props.href = url;
+                props.target = "_blank";
+                props.rel = "noopener noreferrer";
+                displayValue = value;
+              } else if (field.type === "phone") {
+                Component = "a";
+                props.href = `tel:${value}`;
+                props.target = "_blank";
+                props.rel = "noopener noreferrer";
+              } else if (field.type === "date") {
+                const dateOptions = {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                };
+                displayValue = new Date(value).toLocaleDateString(
+                  undefined,
+                  dateOptions,
+                );
+              }
+
+              return (
+                <div key={field.key} className="flex items-start">
+                  <div className="w-20 text-slate-500 text-xs font-medium">
+                    {field.label}:
+                  </div>
+                  <div className="flex-1 text-slate-700 text-xs">
+                    <Component {...props}>{displayValue}</Component>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

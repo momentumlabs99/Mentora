@@ -1,14 +1,15 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { useAuth } from '../state/auth';
-import AppShell from '../layouts/AppShell';
-import LoginPage from '../pages/LoginPage';
-import SignUpPage from '../pages/SignUpPage';
-import OverviewPage from '../pages/OverviewPage';
-import CoursesPage from '../pages/CoursesPage';
-import StudentPage from '../pages/StudentPage';
-import DonorPage from '../pages/DonorPage';
-import NgoPage from '../pages/NgoPage';
-import VerificationPage from '../pages/VerificationPage';
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "../state/auth";
+import AppShell from "../layouts/AppShell";
+import LoginPage from "../pages/LoginPage";
+import SignUpPage from "../pages/SignUpPage";
+import OverviewPage from "../pages/OverviewPage";
+import CoursesPage from "../pages/CoursesPage";
+import StudentPage from "../pages/StudentPage";
+import DonorPage from "../pages/DonorPage";
+import NgoPage from "../pages/NgoPage";
+import VerificationPage from "../pages/VerificationPage";
+import CertificatesPage from "../pages/CertificatesPage";
 
 function Protected({ children }) {
   const { isAuthenticated } = useAuth();
@@ -25,7 +26,7 @@ function AppRouter() {
     <Routes>
       <Route
         path="/"
-        element={<Navigate to={isAuthenticated ? '/app' : '/login'} replace />}
+        element={<Navigate to={isAuthenticated ? "/app" : "/login"} replace />}
       />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignUpPage />} />
@@ -44,6 +45,7 @@ function AppRouter() {
         <Route path="donor" element={<DonorPage />} />
         <Route path="ngo" element={<NgoPage />} />
         <Route path="verify" element={<VerificationPage />} />
+        <Route path="certificates" element={<CertificatesPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

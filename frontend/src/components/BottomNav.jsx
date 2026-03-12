@@ -1,58 +1,107 @@
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../state/auth';
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../state/auth";
 
 function BottomNav() {
   const { role } = useAuth();
 
   const getItemsForRole = () => {
     const baseItems = [
-      { to: '/app', label: 'Home', icon: HomeIcon, end: true, roles: ['ADMIN', 'NGO', 'STUDENT'] },
+      {
+        to: "/app",
+        label: "Home",
+        icon: HomeIcon,
+        end: true,
+        roles: ["ADMIN", "NGO", "STUDENT"],
+      },
     ];
 
-    if (role === 'ADMIN') {
+    if (role === "ADMIN") {
       return [
         ...baseItems,
-        { to: '/app/courses', label: 'Courses', icon: BookIcon, roles: ['ADMIN'] },
-        { to: '/app/student', label: 'Users', icon: UserIcon, roles: ['ADMIN'] },
-        { to: '/app/ngo', label: 'NGOs', icon: BuildingIcon, roles: ['ADMIN'] },
-        { to: '/app/verify', label: 'Verify', icon: CheckIcon, roles: ['ADMIN'] },
+        {
+          to: "/app/courses",
+          label: "Courses",
+          icon: BookIcon,
+          roles: ["ADMIN"],
+        },
+        {
+          to: "/app/student",
+          label: "Users",
+          icon: UserIcon,
+          roles: ["ADMIN"],
+        },
+        { to: "/app/ngo", label: "NGOs", icon: BuildingIcon, roles: ["ADMIN"] },
+        {
+          to: "/app/verify",
+          label: "Verify",
+          icon: CheckIcon,
+          roles: ["ADMIN"],
+        },
       ];
     }
 
-    if (role === 'NGO') {
+    if (role === "NGO") {
       return [
         ...baseItems,
-        { to: '/app/courses', label: 'Courses', icon: BookIcon, roles: ['NGO'] },
-        { to: '/app/donor', label: 'Funds', icon: HeartIcon, roles: ['NGO'] },
-        { to: '/app/verify', label: 'Verify', icon: CheckIcon, roles: ['NGO'] },
-        { to: '/app/ngo', label: 'Profile', icon: BuildingIcon, roles: ['NGO'] },
+        {
+          to: "/app/courses",
+          label: "Courses",
+          icon: BookIcon,
+          roles: ["NGO"],
+        },
+        { to: "/app/donor", label: "Funds", icon: HeartIcon, roles: ["NGO"] },
+        { to: "/app/verify", label: "Verify", icon: CheckIcon, roles: ["NGO"] },
+        {
+          to: "/app/ngo",
+          label: "Profile",
+          icon: BuildingIcon,
+          roles: ["NGO"],
+        },
       ];
     }
 
-    if (role === 'STUDENT') {
+    if (role === "STUDENT") {
       return [
         ...baseItems,
-        { to: '/app/courses', label: 'Courses', icon: BookIcon, roles: ['STUDENT'] },
-        { to: '/app/student', label: 'Profile', icon: UserIcon, roles: ['STUDENT'] },
-        { to: '/app/verify', label: 'Verify', icon: CheckIcon, roles: ['STUDENT'] },
+        {
+          to: "/app/courses",
+          label: "Courses",
+          icon: BookIcon,
+          roles: ["STUDENT"],
+        },
+        {
+          to: "/app/certificates",
+          label: "Certificates",
+          icon: CertificateIcon,
+          roles: ["STUDENT"],
+        },
+        {
+          to: "/app/student",
+          label: "Profile",
+          icon: UserIcon,
+          roles: ["STUDENT"],
+        },
       ];
     }
 
     // Default items
     return [
-      { to: '/app', label: 'Home', icon: HomeIcon, end: true },
-      { to: '/app/courses', label: 'Courses', icon: BookIcon },
-      { to: '/app/student', label: 'Student', icon: UserIcon },
-      { to: '/app/donor', label: 'Donor', icon: HeartIcon },
-      { to: '/app/verify', label: 'Verify', icon: CheckIcon },
+      { to: "/app", label: "Home", icon: HomeIcon, end: true },
+      { to: "/app/courses", label: "Courses", icon: BookIcon },
+      { to: "/app/student", label: "Student", icon: UserIcon },
+      { to: "/app/donor", label: "Donor", icon: HeartIcon },
+      { to: "/app/verify", label: "Verify", icon: CheckIcon },
     ];
   };
 
   const items = getItemsForRole();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-100 bg-white/95 backdrop-blur-lg md:hidden">
-      <div className="mx-auto grid max-w-lg" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-100 bg-white/95 backdrop-blur-lg">
+      <div
+        className="mx-auto grid max-w-lg"
+        style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)` }}
+      >
         {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -60,11 +109,11 @@ function BottomNav() {
             end={end}
             className={({ isActive }) =>
               [
-                'relative flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 text-[10px] font-medium transition-colors',
+                "relative flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 text-[10px] font-medium transition-colors",
                 isActive
-                  ? 'text-teal-deep'
-                  : 'text-slate-400 active:text-slate-600',
-              ].join(' ')
+                  ? "text-teal-deep"
+                  : "text-slate-400 active:text-slate-600",
+              ].join(" ")
             }
           >
             {({ isActive }) => (
@@ -141,6 +190,24 @@ function CheckIcon() {
     <IconBase>
       <circle cx="12" cy="12" r="9" />
       <path d="m9 12 2 2 4-4" />
+    </IconBase>
+  );
+}
+
+function CertificateIcon() {
+  return (
+    <IconBase>
+      <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
+      <path d="M9 12l2 2 4-4" />
+    </IconBase>
+  );
+}
+
+function PaymentsIcon() {
+  return (
+    <IconBase>
+      <path d="M12 2v20" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
     </IconBase>
   );
 }
