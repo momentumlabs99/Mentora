@@ -8,6 +8,20 @@ This guide provides comprehensive instructions for testing the Mentora API endpo
 2. **Insomnia** or **Postman** application installed
 3. **Hyperledger Fabric network** running (for blockchain operations)
 
+---
+
+## What's New in RBAC Implementation
+
+This guide has been updated to reflect the latest RBAC (Role-Based Access Control) implementation:
+
+- ✅ **Email-based authentication** (replaced staffId-based login)
+- ✅ **Three user roles**: ADMIN, NGO, STUDENT
+- ✅ **Public certificate verification** (no authentication required)
+- ✅ **NGO management** endpoints
+- ✅ **Owner tracking** for scholarships
+
+For complete RBAC documentation, see [RBAC_API_DOCUMENTATION.md](RBAC_API_DOCUMENTATION.md).
+
 ## Getting Started
 
 ### Starting the API Server
@@ -52,6 +66,18 @@ http://localhost:4000/api
 
 ## Authentication
 
+### User Roles and Sample Credentials
+
+The Mentora platform supports three user roles:
+
+| Role | Email | Password | Description |
+|------|-------|----------|-------------|
+| **ADMIN** | admin@mentora.org | admin123 | System administrator with full access |
+| **NGO** | ngo@scholars-fund.org | ngo123 | NGO/Sponsor managing scholarships |
+| **NGO** | education@hope-foundation.org | ngo123 | Another NGO/Sponsor |
+| **STUDENT** | student1@university.edu | student123 | Student user |
+| **STUDENT** | student2@university.edu | student123 | Another student |
+
 ### 1. Login
 
 Authenticate with the system to receive a JWT token.
@@ -63,21 +89,53 @@ POST http://localhost:4000/api/auth/login
 #### Request Body:
 ```json
 {
-  "staffId": "STAFF001",
-  "password": "password123"
+  "email": "admin@mentora.org",
+  "password": "admin123"
 }
 ```
 
-#### Expected Response (200 OK):
+#### Expected Response (200 OK) - ADMIN user:
 ```json
 {
   "success": true,
   "data": {
     "user": {
-      "id": "STAFF001",
-      "name": "John Doe",
-      "branchId": "BRANCH001",
-      "role": "MANAGER"
+      "userId": "ADMIN001",
+      "email": "admin@mentora.org",
+      "name": "System Admin",
+      "role": "ADMIN",
+      "organization": "Mentora Platform",
+      "studentId": "",
+      "branchId": ""
+    },
+    "ngo": null,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+#### Expected Response (200 OK) - NGO user:
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "userId": "NGO001",
+      "email": "ngo@scholars-fund.org",
+      "name": "Scholars Fund NGO",
+      "role": "NGO",
+      "organization": "Scholars Fund",
+      "studentId": "",
+      "branchId": ""
+    },
+    "ngo": {
+      "ngoId": "NGO001",
+      "name": "Scholars Fund NGO",
+      "email": "ngo@scholars-fund.org",
+      "registrationNumber": "NGB/2024/001",
+      "description": "Providing scholarships to underprivileged students",
+      "country": "Kenya",
+      "status": "Active"
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -112,15 +170,51 @@ POST http://localhost:4000/api/auth/verify
   "data": {
     "valid": true,
     "user": {
-      "id": "STAFF001",
-      "name": "John Doe",
-      "role": "MANAGER"
+      "userId": "ADMIN001",
+      "email": "admin@mentora.org",
+      "name": "System Admin",
+      "role": "ADMIN"
     }
   }
 }
 ```
 
-### 3. Logout
+### 3. Get Profile
+
+Get current user profile (requires authentication).
+
+```
+GET http://localhost:4000/api/auth/profile
+```
+
+#### Headers:
+```
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+#### Expected Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "userId": "NGO001",
+      "email": "ngo@scholars-fund.org",
+      "name": "Scholars Fund NGO",
+      "role": "NGO",
+      "organization": "Scholars Fund"
+    },
+    "ngo": {
+      "ngoId": "NGO001",
+      "name": "Scholars Fund NGO",
+      "registrationNumber": "NGB/2024/001",
+      "status": "Active"
+    }
+  }
+}
+```
+
+### 4. Logout
 
 ```
 POST http://localhost:4000/api/auth/logout
@@ -137,6 +231,74 @@ POST http://localhost:4000/api/auth/logout
   }
 }
 ```
+
+---
+
+## Public Certificate Verification
+
+### Verify Certificate (No Authentication Required)
+
+This is a public endpoint that can be accessed without authentication - perfect for certificate sharing links.
+
+```
+GET http://localhost:4000/api/verify/{certId}
+```
+
+#### Example:
+```
+GET http://localhost:4000/api/verify/CERT1234567890ABCD
+```
+
+#### Expected Response (200 OK) - Valid Certificate:
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "certificate": {
+      "certificateId": "CERT1234567890ABCD",
+      "studentName": "John Student",
+      "courseName": "Blockchain Fundamentals",
+      "courseCode": "BCS101",
+      "instructorName": "Dr. Alice",
+      "issueDate": "2024-03-01",
+      "expirationDate": "2025-03-01",
+      "certificateType": "Course Completion",
+      "issuerOrg": "Mentora University",
+      "status": "Active"
+    },
+    "verifiedAt": "2024-03-11T10:30:00.000Z"
+  }
+}
+```
+
+#### Expected Response (200 OK) - Invalid Certificate:
+```json
+{
+  "success": true,
+  "data": {
+    "valid": false,
+    "reason": "Certificate has expired",
+    "certificate": {
+      "certificateId": "CERT1234567890ABCD",
+      "studentName": "John Student",
+      "courseName": "Blockchain Fundamentals",
+      "courseCode": "BCS101",
+      "instructorName": "Dr. Alice",
+      "issueDate": "2024-03-01",
+      "expirationDate": "2024-01-01",
+      "certificateType": "Course Completion",
+      "issuerOrg": "Mentora University",
+      "status": "Active"
+    },
+    "verifiedAt": "2024-03-11T10:30:00.000Z"
+  }
+}
+```
+
+**Note:** Certificates can be invalid for the following reasons:
+- `"Certificate has expired"` - The expiration date has passed
+- `"Certificate has been revoked"` - The status is "Revoked"
 
 ---
 
@@ -321,13 +483,15 @@ GET http://localhost:4000/api/students/certificates/CERT001
 
 All course endpoints require authentication.
 
-### 1. Create Course
+### 1. Create Course (ADMIN only)
 
 Create a new course in the system.
 
 ```
 POST http://localhost:4000/api/courses
 ```
+
+**Required Role:** ADMIN
 
 #### Request Body:
 ```json
@@ -538,17 +702,106 @@ GET http://localhost:4000/api/courses/statistics
 
 ---
 
+## NGO Endpoints
+
+### 1. Get All NGOs (Public)
+
+Retrieve all registered NGOs.
+
+```
+GET http://localhost:4000/api/ngos
+```
+
+#### Expected Response (200 OK):
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "ngoId": "NGO001",
+      "name": "Scholars Fund NGO",
+      "email": "ngo@scholars-fund.org",
+      "registrationNumber": "NGB/2024/001",
+      "description": "Providing scholarships to underprivileged students",
+      "country": "Kenya",
+      "status": "Active"
+    },
+    {
+      "ngoId": "NGO002",
+      "name": "Hope Foundation",
+      "email": "education@hope-foundation.org",
+      "registrationNumber": "NGB/2024/002",
+      "description": "Empowering youth through education",
+      "country": "Kenya",
+      "status": "Active"
+    }
+  ]
+}
+```
+
+### 2. Get NGO by ID (Public)
+
+```
+GET http://localhost:4000/api/ngos/{ngoId}
+```
+
+#### Example:
+```
+GET http://localhost:4000/api/ngos/NGO001
+```
+
+### 3. Get Current NGO Profile (NGO, ADMIN only)
+
+Get the profile of the currently authenticated NGO user.
+
+```
+GET http://localhost:4000/api/ngos/profile/me
+```
+
+**Required Role:** NGO or ADMIN
+
+#### Headers:
+```
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+#### Expected Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "ngoId": "NGO001",
+    "name": "Scholars Fund NGO",
+    "email": "ngo@scholars-fund.org",
+    "phone": "+254-700-123-456",
+    "address": "123 Education Street, Nairobi",
+    "registrationNumber": "NGB/2024/001",
+    "description": "Providing scholarships to underprivileged students",
+    "country": "Kenya",
+    "region": "East Africa",
+    "contactPerson": "Mary Johnson",
+    "contactEmail": "mary@scholars-fund.org",
+    "website": "https://scholars-fund.org",
+    "status": "Active"
+  }
+}
+```
+
+---
+
 ## Scholarship Endpoints
 
 All scholarship endpoints require authentication.
 
-### 1. Create Scholarship Fund
+### 1. Create Scholarship Fund (NGO, ADMIN only)
 
-Create a new scholarship fund.
+Create a new scholarship fund. The system automatically tracks the owner information from your authentication token.
 
 ```
 POST http://localhost:4000/api/scholarships/funds
 ```
+
+**Required Role:** NGO or ADMIN
 
 #### Request Body:
 ```json
@@ -556,8 +809,8 @@ POST http://localhost:4000/api/scholarships/funds
   "fundId": "FUND001",
   "fundName": "Excellence Scholarship",
   "description": "Scholarship for outstanding academic performance",
-  "donorId": "DON001",
-  "donorName": "Tech Foundation",
+  "donorId": "NGO001",
+  "donorName": "Scholars Fund NGO",
   "initialAmount": 50000,
   "currency": "USD",
   "allocationYear": "2026",
@@ -576,10 +829,17 @@ POST http://localhost:4000/api/scholarships/funds
   "data": {
     "fundId": "FUND001",
     "fundName": "Excellence Scholarship",
+    "ownerId": "NGO001",
+    "ownerName": "Scholars Fund NGO",
+    "ownerEmail": "ngo@scholars-fund.org",
+    "ownerRole": "NGO",
+    "ownerOrganization": "Scholars Fund",
     "status": "Active"
   }
 }
 ```
+
+**Note:** The `ownerId`, `ownerName`, `ownerEmail`, `ownerRole`, and `ownerOrganization` fields are automatically populated from the authenticated user.
 
 ### 2. Get All Scholarship Funds
 
@@ -756,6 +1016,13 @@ All endpoints follow a consistent error response format:
 ```json
 {
   "success": false,
+  "error": "No authentication token provided"
+}
+```
+OR
+```json
+{
+  "success": false,
   "error": "Invalid or expired token"
 }
 ```
@@ -782,6 +1049,85 @@ All endpoints follow a consistent error response format:
   "success": false,
   "error": "Internal server error"
 }
+```
+
+---
+
+## RBAC (Role-Based Access Control) Guide
+
+### Understanding Roles
+
+| Role | Description | Can Create | Can View | Can Edit | Can Delete |
+|------|-------------|------------|----------|----------|------------|
+| **ADMIN** | Full system access | All resources | All resources | All resources | All resources |
+| **NGO** | Manages scholarships | Scholarship funds, donations | Funds, courses, certificates | Funds, allocations | N/A |
+| **STUDENT** | Learner and recipient | N/A | Courses, certificates, own data | N/A | N/A |
+
+### Role-Based Endpoint Access
+
+#### Scholarship Endpoints
+
+| Endpoint | Create | View | Update/Delete |
+|----------|--------|------|----------------|
+| `/api/scholarships/funds` (POST) | NGO, ADMIN | - | - |
+| `/api/scholarships/funds` (GET) | - | All roles | - |
+| `/api/scholarships/donations` (POST) | NGO, ADMIN, STUDENT | - | - |
+| `/api/scholarships/allocate` (POST) | NGO, ADMIN | - | - |
+| `/api/scholarships/disburse/:id` (POST) | NGO, ADMIN, STUDENT | - | - |
+
+#### Course Endpoints
+
+| Endpoint | Create | View | Update |
+|----------|--------|------|--------|
+| `/api/courses` (POST) | ADMIN | - | - |
+| `/api/courses` (GET) | - | All roles | - |
+| `/api/courses/enroll` (POST) | STUDENT, ADMIN, NGO | - | - |
+| `/api/courses/complete` (POST) | ADMIN, NGO | - | - |
+| `/api/courses/{id}/students/{sid}/progress` (PUT) | STUDENT, ADMIN, NGO | - | - |
+
+### Testing Role-Based Access
+
+To test RBAC:
+
+1. **Login as different roles** using the sample credentials
+2. **Copy the JWT token** from each login response
+3. **Test endpoints** with different role tokens
+4. **Verify access restrictions** - you should get 403 Forbidden when trying to access endpoints your role doesn't have permission for
+
+**Example Testing Flow:**
+
+```bash
+# Test 1: Try to create a course as STUDENT (should fail)
+curl -X POST http://localhost:4000/api/courses \
+  -H "Authorization: Bearer STUDENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{...course data...}'
+
+# Expected: 403 Forbidden
+
+# Test 2: Try to create a course as ADMIN (should succeed)
+curl -X POST http://localhost:4000/api/courses \
+  -H "Authorization: Bearer ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{...course data...}'
+
+# Expected: 201 Created
+
+# Test 3: Try to create a scholarship fund as STUDENT (should fail)
+curl -X POST http://localhost:4000/api/scholarships/funds \
+  -H "Authorization: Bearer STUDENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{...fund data...}'
+
+# Expected: 403 Forbidden
+
+# Test 4: Try to create a scholarship fund as NGO (should succeed)
+curl -X POST http://localhost:4000/api/scholarships/funds \
+  -H "Authorization: Bearer NGO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{...fund data...}'
+
+# Expected: 201 Created with owner tracking
 ```
 
 ---
@@ -840,3 +1186,78 @@ GET http://localhost:4000/api
 ```
 
 This returns a JSON with all available endpoints organized by category.
+
+---
+
+## Additional Documentation
+
+- **[RBAC API Documentation](RBAC_API_DOCUMENTATION.md)** - Complete guide to Role-Based Access Control, user roles, and permissions
+- **[Network Configuration](NETWORK_CONFIGURATION.md)** - Hyperledger Fabric network setup and configuration
+- **[Chaincode Testing](CHAINCODE_TESTING.md)** - Testing blockchain smart contracts
+
+---
+
+## Quick Start Testing Guide
+
+### Step 1: Start the Server
+
+```bash
+cd backend
+npm start
+```
+
+### Step 2: Login (Get a Token)
+
+Use one of the sample credentials:
+
+```bash
+# As Admin
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@mentora.org","password":"admin123"}'
+
+# As NGO
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"ngo@scholars-fund.org","password":"ngo123"}'
+
+# As Student
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"student1@university.edu","password":"student123"}'
+```
+
+### Step 3: Use the Token
+
+Copy the `token` from the login response and use it in subsequent requests:
+
+```bash
+curl http://localhost:4000/api/courses \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+### Step 4: Test Public Certificate Verification
+
+No token required:
+
+```bash
+curl http://localhost:4000/api/verify/CERT1234567890ABCD
+```
+
+### Step 5: Test Role-Based Access
+
+Try creating a scholarship fund as different users to see RBAC in action:
+
+```bash
+# As NGO (should succeed)
+curl -X POST http://localhost:4000/api/scholarships/funds \
+  -H "Authorization: Bearer NGO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"fundId":"FUND001","fundName":"Test Fund","donorId":"NGO001","donorName":"Test NGO","initialAmount":1000,"currency":"USD","allocationYear":"2026","eligibilityCriteria":{}}'
+
+# As Student (should fail with 403)
+curl -X POST http://localhost:4000/api/scholarships/funds \
+  -H "Authorization: Bearer STUDENT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"fundId":"FUND002","fundName":"Test Fund","donorId":"STU001","donorName":"Test Student","initialAmount":1000,"currency":"USD","allocationYear":"2026","eligibilityCriteria":{}}'
+```
