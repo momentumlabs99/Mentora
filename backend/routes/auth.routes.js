@@ -11,6 +11,13 @@ const { authenticate } = require('../middleware/authMiddleware');
 router.post('/login', authController.login);
 
 /**
+ * @route   POST /api/auth/signup
+ * @desc    Create a new user account and return token
+ * @access  Public
+ */
+router.post('/signup', authController.signup);
+
+/**
  * @route   POST /api/auth/logout
  * @desc    Logout user (client-side token removal)
  * @access  Private
